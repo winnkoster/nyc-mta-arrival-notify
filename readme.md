@@ -19,6 +19,10 @@ This script relies on the following packages: Python language bindings for GTFS,
     pip install protobuf3_to_dict
     pip install -U python-dotenv
 
+Note that there seems to be a specific version requirement for protobuf. If running the code after the previous installations yields a TypeError, the following may fix the issue (see more info [here](https://github.com/protocolbuffers/protobuf/issues/10051#issuecomment-1138392640)): 
+
+    pip install 'protobuf==3.20.1'
+
 Access to the MTA live feeds requires signing up for an API key from the NYC MTA: http://datamine.mta.info/user/register
 
 Put API key into the changeme.env file (after `API_KEY=`) and rename the file into an .env file within the root directory of the Python script.

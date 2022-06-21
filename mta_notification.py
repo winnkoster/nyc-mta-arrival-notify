@@ -5,13 +5,28 @@ import os # imports package for dotenv
 from dotenv import load_dotenv, find_dotenv # imports module for dotenv
 load_dotenv(find_dotenv()) # loads .env from root directory
 
+
+# See MTA Google Group post for discussion on this authentication header; you get 403 errors without it:
+# https://groups.google.com/g/mtadeveloperresources/c/t8anoGP5S8U/m/Ke3lxu-1CAAJ
+class TokenAuth(requests.auth.AuthBase):
+    """Implements a custom authentication scheme."""
+
+    def __init__(self, token):
+        self.token = token
+
+    def __call__(self, r):
+        """Attach an API token to a custom auth header."""
+        r.headers['x-api-key'] = f'{self.token}'  # Python 3.6+
+        return r
+
+
 # The root directory requires a .env file with API_KEY assigned/defined within
 # and dotenv installed from pypi. Get API key from http://datamine.mta.info/user
 api_key = os.environ['API_KEY']
 
 # Requests subway status data feed from City of New York MTA API
 feed = gtfs_realtime_pb2.FeedMessage()
-response = requests.get('http://datamine.mta.info/mta_esi.php?key={}&feed_id=21'.format(api_key))
+response = requests.get(url='https://api-endpoint.mta.info/Dataservice/mtagtfsfeeds/nyct%2Fgtfs-bdfm', auth=TokenAuth(api_key))
 feed.ParseFromString(response.content)
 
 # The MTA data feed uses the General Transit Feed Specification (GTFS) which
@@ -20,6 +35,8 @@ feed.ParseFromString(response.content)
 # "pip install --upgrade gtfs-realtime-bindings" library which can be found on pypi
 from protobuf_to_dict import protobuf_to_dict
 subway_feed = protobuf_to_dict(feed) # subway_feed is a dictionary
+# TODO - Code will KeyError on the below line if no trains are scheduled (ie: entire line is suspended)
+# TODO - This happens frequently with the G on nights and weekends, but I imagine it never came up on the BDFM
 realtime_data = subway_feed['entity'] # train_data is a list
 
 # Because the data feed includes multiple arrival times for a given station
