@@ -35,6 +35,8 @@ feed.ParseFromString(response.content)
 # "pip install --upgrade gtfs-realtime-bindings" library which can be found on pypi
 from protobuf_to_dict import protobuf_to_dict
 subway_feed = protobuf_to_dict(feed) # subway_feed is a dictionary
+# TODO - Code will KeyError on the below line if no trains are scheduled (ie: entire line is suspended)
+# TODO - This happens frequently with the G on nights and weekends, but I imagine it never came up on the BDFM
 realtime_data = subway_feed['entity'] # train_data is a list
 
 # Because the data feed includes multiple arrival times for a given station
